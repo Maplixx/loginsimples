@@ -1,179 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Liquid Flow Authentication</title>
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-
-    body {
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #0f172a;
-        overflow: hidden;
-        perspective: 1000px; 
-    }
-
-    /* --- Fundo (Blobs) --- */
-    .background-blobs { position: absolute; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-    .blob { position: absolute; filter: blur(60px); opacity: 0.7; animation: floatLiquid 20s infinite ease-in-out alternate; }
-    .blob-1 { width: 500px; height: 500px; background: linear-gradient(135deg, #0061ff, #60efff); top: -150px; left: -150px; border-radius: 40% 60% 70% 30%; }
-    .blob-2 { width: 400px; height: 400px; background: linear-gradient(135deg, #360033, #0b8793); bottom: -100px; right: -100px; border-radius: 60% 40% 30% 70%; animation-duration: 25s; animation-direction: alternate-reverse; }
-
-    /* --- Container Principal --- */
-    .scene-container {
-        position: relative;
-        width: 400px;
-        height: 500px; /* Altura fixa para garantir alinhamento */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10;
-        transform-style: preserve-3d;
-    }
-
-    /* --- O Cartão de Vidro (Base) --- */
-    .glass-card {
-        position: absolute; /* Sobrepostos inicialmente */
-        width: 100%;
-        padding: 40px 30px;
-        background: rgba(255, 255, 255, 0.03);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-radius: 30px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-        border-left: 1px solid rgba(255, 255, 255, 0.2);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        color: rgba(255, 255, 255, 0.9);
-        
-        /* Transição base para o efeito mouse */
-        transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        opacity: 0;
-        pointer-events: none;
-        transform: scale(0.8); /* Começa pequeno e invisível */
-    }
-
-    /* Classe para o cartão ativo */
-    .card-active {
-        opacity: 1;
-        pointer-events: all;
-        transform: scale(1);
-    }
-
-    .title {
-        font-size: 1.8rem; font-weight: 700; margin-bottom: 30px;
-        background: linear-gradient(to right, #ffffff, #a2c2ff);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        pointer-events: none;
-    }
-
-    .input-group { width: 100%; margin-bottom: 20px; }
-
-    .glass-input {
-        width: 100%; padding: 15px 20px; border: none; border-radius: 20px;
-        background: rgba(0, 0, 0, 0.2);
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.2), 0 1px 1px rgba(255,255,255,0.1);
-        color: white; font-size: 1rem; outline: none; transition: all 0.3s ease;
-    }
-
-    .glass-input:focus {
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.1), 0 0 15px rgba(96, 239, 255, 0.3);
-        transform: scale(1.02);
-    }
-
-    .glass-button {
-        width: 100%; padding: 15px; margin-top: 10px; border: none; border-radius: 20px;
-        font-size: 1.1rem; font-weight: 600; color: white; cursor: pointer;
-        background: linear-gradient(90deg, #0061ff, #00c6ff);
-        box-shadow: 0 4px 15px rgba(0, 97, 255, 0.4);
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .glass-button:hover { box-shadow: 0 8px 25px rgba(0, 97, 255, 0.6); }
-    .glass-button:active { transform: scale(0.95); }
-
-    .links { width: 100%; display: flex; justify-content: center; gap: 15px; margin-top: 20px; font-size: 0.9rem; }
-    .links a { color: rgba(255, 255, 255, 0.6); text-decoration: none; transition: 0.3s; cursor: pointer; }
-    .links a:hover { color: white; text-shadow: 0 0 5px white; }
-
-    /* --- Barra de Progresso Liquid --- */
-    .progress-container {
-        width: 100%; height: 6px; background: rgba(255,255,255,0.1);
-        border-radius: 10px; margin-top: 20px; overflow: hidden;
-        display: none; /* Escondida inicialmente */
-    }
-    .progress-bar {
-        height: 100%; width: 0%;
-        background: linear-gradient(90deg, #00c6ff, #0072ff);
-        box-shadow: 0 0 10px #00c6ff;
-        border-radius: 10px;
-        transition: width 0.1s linear;
-    }
-    .status-text { font-size: 0.9rem; color: #a2c2ff; margin-top: 10px; min-height: 20px; }
-
-    /* --- Frase Final --- */
-    .final-phrase {
-        position: absolute; z-index: 5;
-        font-size: 2.5rem; font-weight: bold; text-align: center;
-        color: white; opacity: 0;
-        text-shadow: 0 0 20px rgba(0, 198, 255, 0.6);
-        transform: scale(0.8);
-        transition: all 1s ease;
-    }
-    .final-phrase.show { opacity: 1; transform: scale(1); }
-
-    /* --- ANIMAÇÕES DE TRANSIÇÃO --- */
-    
-    /* Erro (Tremer) */
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        20%, 60% { transform: translateX(-10px); }
-        40%, 80% { transform: translateX(10px); }
-    }
-    .shake-anim { animation: shake 0.4s ease-in-out; }
-
-    /* Animação: Zoom e vai pro lado (Saída) */
-    @keyframes zoomSideOut {
-        0% { transform: scale(1) translateX(0); opacity: 1; }
-        100% { transform: scale(1.2) translateX(-150%); opacity: 0; }
-    }
-    .anim-zoom-side-out { animation: zoomSideOut 0.8s forwards cubic-bezier(0.68, -0.55, 0.265, 1.55); pointer-events: none; }
-
-    /* Animação: Vem do outro lado e Pula (Entrada) */
-    @keyframes sideInPop {
-        0% { transform: translateX(150%) scale(0.8); opacity: 0; }
-        70% { transform: translateX(0) scale(1.05); opacity: 1; } /* O pulo */
-        100% { transform: translateX(0) scale(1); opacity: 1; }
-    }
-    .anim-side-in-pop { animation: sideInPop 0.8s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-    /* Animação: Zoom Out Individual (Desaparecer Elementos) */
-    @keyframes elementZoomOut {
-        to { transform: scale(0); opacity: 0; }
-    }
-    .zoom-out-el { animation: elementZoomOut 0.5s forwards ease-in; }
-
-    /* Animação: Tela volta com Zoom (Entrada Grande -> Normal) */
-    @keyframes zoomBigIn {
-        0% { transform: scale(2); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
-    }
-    .anim-zoom-big-in { animation: zoomBigIn 0.8s forwards cubic-bezier(0.2, 0.8, 0.2, 1); }
-
-    @keyframes floatLiquid {
-        0% { transform: translate(0, 0) rotate(0deg); }
-        100% { transform: translate(30px, 40px) rotate(10deg); }
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Auth System</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -182,239 +13,56 @@
         <div class="blob blob-2"></div>
     </div>
 
-    <div class="final-phrase" id="finalPhrase">
-        Bem-vindo ao Futuro
-    </div>
+    <div class="final-phrase" id="finalPhrase">Bem-vindo ao Futuro</div>
 
     <div class="scene-container" id="scene">
         
-        <div class="login-glass-card card-active" id="loginCard">
-            <h2 class="title element-l">Bem-vindo</h2>
-            <div class="input-group element-l">
-                <input type="text" class="glass-input" placeholder="Usuário" id="loginUser">
+        <div class="glass-card card-active" id="loginCard">
+            <h2 class="title">Bem-vindo</h2>
+            
+            <div class="input-group">
+                <input type="text" class="glass-input" placeholder="Usuário" id="loginUser" autocomplete="off">
             </div>
-            <div class="input-group element-l">
+            <div class="input-group">
                 <input type="password" class="glass-input" placeholder="Senha" id="loginPass">
             </div>
-            <button type="button" class="glass-button element-l" onclick="attemptLogin()">Entrar</button>
+
+            <button type="button" class="glass-button" id="btnLogin">Entrar</button>
             
-            <div class="progress-container element-l" id="progBarLoginContainer">
+            <div class="progress-wrapper" id="progWrapperLogin">
                 <div class="progress-bar" id="progBarLogin"></div>
             </div>
-            <div class="status-text element-l" id="statusLogin"></div>
+            <div class="status-text" id="statusLogin"></div>
 
-            <div class="links element-l">
-                <a onclick="goToRegister()">Criar conta</a>
+            <div class="links">
+                <a id="btnGoToRegister">Criar conta</a>
             </div>
         </div>
 
-        <div class="login-glass-card" id="registerCard">
-            <h2 class="title element-r">Novo Acesso</h2>
-            <div class="input-group element-r">
-                <input type="text" class="glass-input" placeholder="Criar Usuário" id="regUser">
+        <div class="glass-card" id="registerCard">
+            <h2 class="title">Novo Acesso</h2>
+            
+            <div class="input-group">
+                <input type="text" class="glass-input" placeholder="Criar Usuário" id="regUser" autocomplete="off">
             </div>
-            <div class="input-group element-r">
+            <div class="input-group">
                 <input type="password" class="glass-input" placeholder="Criar Senha" id="regPass">
             </div>
-            <button type="button" class="glass-button element-r" onclick="attemptRegister()">Cadastrar</button>
 
-            <div class="progress-container element-r" id="progBarRegContainer">
+            <button type="button" class="glass-button" id="btnRegister">Cadastrar</button>
+
+            <div class="progress-wrapper" id="progWrapperReg">
                 <div class="progress-bar" id="progBarReg"></div>
             </div>
-            <div class="status-text element-r" id="statusReg"></div>
+            <div class="status-text" id="statusReg"></div>
 
-            <div class="links element-r">
-                <a onclick="goToLogin()">Já tenho conta</a>
+            <div class="links">
+                <a id="btnGoToLogin">Já tenho conta</a>
             </div>
         </div>
 
     </div>
 
-    <script>
-        // Elementos
-        const scene = document.getElementById('scene');
-        const loginCard = document.getElementById('loginCard');
-        const registerCard = document.getElementById('registerCard');
-        const finalPhrase = document.getElementById('finalPhrase');
-
-        // Efeito Mouse (Liquid Tilt) - Aplicado apenas ao CARD ATIVO
-        let mouseX = 0, mouseY = 0;
-        let activeCard = loginCard; // Começa com login
-
-        document.addEventListener('mousemove', (e) => {
-            const halfWidth = window.innerWidth / 2;
-            const halfHeight = window.innerHeight / 2;
-            mouseX = (e.clientX - halfWidth) / 35;
-            mouseY = (e.clientY - halfHeight) / 35;
-            
-            // Se o cartão estiver ativo e não estiver em animação automática
-            if(activeCard && !activeCard.classList.contains('animating')) {
-                activeCard.style.transform = `rotateY(${mouseX}deg) rotateX(${-mouseY}deg) translate(${mouseX * 1.5}px, ${mouseY * 1.5}px)`;
-            }
-        });
-
-        // --- FUNÇÕES DE NAVEGAÇÃO ---
-
-        function goToRegister() {
-            activeCard = null; // Para o mouse não interferir na animação
-            
-            // Login: Zoom e vai pro lado
-            loginCard.style.transform = ''; // Reseta transform manual do mouse
-            loginCard.classList.remove('card-active', 'anim-side-in-pop', 'anim-zoom-big-in');
-            loginCard.classList.add('anim-zoom-side-out', 'animating');
-
-            // Cadastro: Vem do outro lado e Pula
-            registerCard.classList.remove('anim-zoom-side-out');
-            registerCard.classList.add('card-active', 'anim-side-in-pop', 'animating');
-
-            setTimeout(() => {
-                activeCard = registerCard;
-                loginCard.classList.remove('animating');
-                registerCard.classList.remove('animating');
-            }, 800);
-        }
-
-        function goToLogin(fromRegisterSuccess = false) {
-            activeCard = null;
-
-            // Cadastro: Sai (inverso) ou Zoom Out Elementos (se sucesso)
-            if (!fromRegisterSuccess) {
-                registerCard.style.transform = '';
-                registerCard.classList.remove('card-active', 'anim-side-in-pop');
-                registerCard.classList.add('anim-zoom-side-out', 'animating'); // Usando a mesma saída por simplicidade visual
-                
-                // Login: Entra
-                loginCard.classList.remove('anim-zoom-side-out');
-                loginCard.classList.add('card-active', 'anim-side-in-pop', 'animating');
-            } else {
-                // Animação especial de sucesso: Tela de login volta com Zoom Grande
-                loginCard.classList.remove('anim-zoom-side-out');
-                loginCard.classList.add('card-active', 'anim-zoom-big-in', 'animating');
-            }
-
-            setTimeout(() => {
-                activeCard = loginCard;
-                loginCard.classList.remove('animating');
-                registerCard.classList.remove('animating');
-                
-                // Resetar campos de cadastro
-                document.getElementById('regUser').value = '';
-                document.getElementById('regPass').value = '';
-                document.getElementById('statusReg').innerText = '';
-                document.getElementById('progBarRegContainer').style.display = 'none';
-                // Restaurar visibilidade dos elementos do register se foram ocultados
-                document.querySelectorAll('.element-r').forEach(el => {
-                    el.style.opacity = '1';
-                    el.style.transform = 'scale(1)';
-                    el.classList.remove('zoom-out-el');
-                });
-
-            }, 800);
-        }
-
-        // --- LÓGICA DE CADASTRO ---
-
-        function attemptRegister() {
-            const user = document.getElementById('regUser').value;
-            const pass = document.getElementById('regPass').value;
-            const status = document.getElementById('statusReg');
-            const barContainer = document.getElementById('progBarRegContainer');
-            const bar = document.getElementById('progBarReg');
-
-            if(!user || !pass) {
-                shakeCard(registerCard);
-                return;
-            }
-
-            // Iniciar Processo de Salvamento
-            barContainer.style.display = 'block';
-            bar.style.width = '0%';
-            status.innerText = "Salvando no sistema...";
-
-            // Simula carregamento
-            setTimeout(() => { bar.style.width = '50%'; }, 200);
-            setTimeout(() => { bar.style.width = '100%'; }, 800);
-
-            setTimeout(() => {
-                // Salva no LocalStorage (Simulando Banco de Dados)
-                localStorage.setItem('user_' + user, pass);
-                status.innerText = "Login salvo!";
-                status.style.color = '#4ade80'; // Verde
-
-                // 1 Segundo depois: Zoom out nos blocos
-                setTimeout(() => {
-                    animateElementsOut('element-r', () => {
-                        goToLogin(true); // Volta pro login com animação especial
-                    });
-                }, 1000);
-
-            }, 1200);
-        }
-
-        // --- LÓGICA DE LOGIN ---
-
-        function attemptLogin() {
-            const user = document.getElementById('loginUser').value;
-            const pass = document.getElementById('loginPass').value;
-            const status = document.getElementById('statusLogin');
-            const barContainer = document.getElementById('progBarLoginContainer');
-            const bar = document.getElementById('progBarLogin');
-
-            // Verifica no "Banco de Dados"
-            const storedPass = localStorage.getItem('user_' + user);
-
-            if (storedPass === pass && pass !== "") {
-                // SUCESSO
-                barContainer.style.display = 'block';
-                bar.style.width = '0%';
-                status.innerText = "Logando...";
-                
-                setTimeout(() => { bar.style.width = '100%'; }, 600);
-                
-                setTimeout(() => {
-                    // Finalizar: Menu some, aparece frase
-                    loginCard.classList.add('zoom-out-el'); // Zoom out no card inteiro
-                    
-                    setTimeout(() => {
-                        scene.style.display = 'none'; // Remove container
-                        finalPhrase.classList.add('show'); // Mostra frase
-                    }, 600);
-                }, 1000);
-
-            } else {
-                // ERRO
-                shakeCard(loginCard);
-                // Se quiser limpar o campo de senha:
-                // document.getElementById('loginPass').value = '';
-            }
-        }
-
-        // --- UTILITÁRIOS ---
-
-        function shakeCard(card) {
-            card.classList.add('shake-anim');
-            // O iOS vibra se possível
-            if(window.navigator && window.navigator.vibrate) { navigator.vibrate(200); }
-            setTimeout(() => {
-                card.classList.remove('shake-anim');
-            }, 400);
-        }
-
-        function animateElementsOut(className, callback) {
-            const elements = document.querySelectorAll('.' + className);
-            let totalTime = 0;
-            
-            elements.forEach((el, index) => {
-                setTimeout(() => {
-                    el.classList.add('zoom-out-el');
-                }, index * 100); // Delay escalonado (um por um)
-                totalTime = index * 100 + 500;
-            });
-
-            setTimeout(callback, totalTime - 200); // Chama callback um pouco antes de terminar tudo
-        }
-
-    </script>
-
+    <script src="script.js"></script>
 </body>
 </html>
