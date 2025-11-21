@@ -3,16 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login Liquid Glass iOS</title>
+<title>Login Liquid Glass Interativo</title>
 <style>
-    /* --- Reset e Fontes --- */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
     * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-family: 'Inter', -apple-system, sans-serif;
     }
 
     body {
@@ -20,26 +19,25 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: #0f172a; /* Cor de fundo de fallback */
+        background-color: #0f172a;
         overflow: hidden;
-        position: relative;
+        /* Perspectiva é essencial para o efeito 3D de esticar */
+        perspective: 1000px; 
     }
 
-    /* --- Elementos Líquidos de Fundo (Blobs) --- */
+    /* --- Fundo (Blobs) --- */
     .background-blobs {
         position: absolute;
-        top: 0;
-        left: 0;
         width: 100%;
         height: 100%;
         z-index: 1;
-        pointer-events: none; /* Não interferem no clique */
+        pointer-events: none;
     }
 
     .blob {
         position: absolute;
-        filter: blur(50px);
-        opacity: 0.8;
+        filter: blur(60px);
+        opacity: 0.7;
         animation: floatLiquid 20s infinite ease-in-out alternate;
     }
 
@@ -49,7 +47,7 @@
         background: linear-gradient(135deg, #0061ff, #60efff);
         top: -150px;
         left: -150px;
-        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        border-radius: 40% 60% 70% 30%;
     }
 
     .blob-2 {
@@ -58,12 +56,12 @@
         background: linear-gradient(135deg, #360033, #0b8793);
         bottom: -100px;
         right: -100px;
-        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        border-radius: 60% 40% 30% 70%;
         animation-duration: 25s;
         animation-direction: alternate-reverse;
     }
 
-    /* --- O Container de Vidro (Glassmorphism) --- */
+    /* --- O Cartão de Vidro --- */
     .login-glass-card {
         position: relative;
         z-index: 10;
@@ -71,44 +69,39 @@
         max-width: 400px;
         padding: 40px 30px;
         
-        /* A Mágica do Vidro Líquido */
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.03);
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px); /* Suporte Safari iOS */
+        -webkit-backdrop-filter: blur(20px);
         border-radius: 30px;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-top: 1px solid rgba(255, 255, 255, 0.2); /* Borda superior mais brilhante */
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
         border-left: 1px solid rgba(255, 255, 255, 0.2);
         
         display: flex;
         flex-direction: column;
         align-items: center;
         color: rgba(255, 255, 255, 0.9);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
 
-    /* Efeito sutil de hover no cartão inteiro */
-    .login-glass-card:hover {
-        box-shadow: 0 15px 35px 0 rgba(0, 0, 0, 0.4);
-        transform: translateY(-2px);
+        /* A transição suave é o segredo para parecer líquido e não robótico */
+        transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s ease;
+        transform-style: preserve-3d; /* Garante que o 3D funcione bem */
     }
 
     .title {
         font-size: 1.8rem;
         font-weight: 700;
         margin-bottom: 30px;
-        letter-spacing: 0.5px;
         background: linear-gradient(to right, #ffffff, #a2c2ff);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        pointer-events: none; /* Evita bugs de mouse */
     }
 
-    /* --- Inputs Estilo iOS Glass --- */
+    /* --- Inputs --- */
     .input-group {
         width: 100%;
         margin-bottom: 20px;
-        position: relative;
     }
 
     .glass-input {
@@ -116,32 +109,21 @@
         padding: 15px 20px;
         border: none;
         border-radius: 20px;
-        
-        /* Estilo "cavado" no vidro */
         background: rgba(0, 0, 0, 0.2);
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.2), 
-                    0 1px 1px rgba(255,255,255,0.1);
-        
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.2), 0 1px 1px rgba(255,255,255,0.1);
         color: white;
         font-size: 1rem;
         outline: none;
         transition: all 0.3s ease;
     }
 
-    .glass-input::placeholder {
-        color: rgba(255, 255, 255, 0.5);
-    }
-
-    /* Animação ao focar no input */
     .glass-input:focus {
         background: rgba(255, 255, 255, 0.08);
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.1), 
-                    0 0 15px rgba(96, 239, 255, 0.4), /* Brilho azul externo */
-                    0 1px 1px rgba(255,255,255,0.2);
-        padding-left: 25px; /* Pequeno movimento do texto */
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.1), 0 0 15px rgba(96, 239, 255, 0.3);
+        transform: scale(1.02); /* Leve zoom no input focado */
     }
 
-    /* --- Botão com Animação Líquida --- */
+    /* --- Botão --- */
     .glass-button {
         width: 100%;
         padding: 15px;
@@ -152,32 +134,19 @@
         font-weight: 600;
         color: white;
         cursor: pointer;
-        
-        /* Gradiente Líquido */
         background: linear-gradient(90deg, #0061ff, #00c6ff);
         box-shadow: 0 4px 15px rgba(0, 97, 255, 0.4);
-        
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        transition: transform 0.2s, box-shadow 0.2s;
     }
 
-    /* Efeito Hover do Botão */
     .glass-button:hover {
         box-shadow: 0 8px 25px rgba(0, 97, 255, 0.6);
-        transform: translateY(-3px) scale(1.02);
-        background: linear-gradient(90deg, #1a72ff, #33d1ff);
     }
 
-    /* Efeito de Clique (Jelly/Liquid Splash) */
     .glass-button:active {
-        transform: scale(0.92); /* "Espremida" */
-        box-shadow: 0 2px 10px rgba(0, 97, 255, 0.3);
-        filter: brightness(1.2);
-        transition: all 0.1s ease; /* Resposta rápida */
+        transform: scale(0.95);
     }
 
-    /* Links extras */
     .links {
         width: 100%;
         display: flex;
@@ -185,25 +154,13 @@
         margin-top: 20px;
         font-size: 0.9rem;
     }
+    .links a { color: rgba(255, 255, 255, 0.6); text-decoration: none; transition: 0.3s; }
+    .links a:hover { color: white; }
 
-    .links a {
-        color: rgba(255, 255, 255, 0.6);
-        text-decoration: none;
-        transition: color 0.3s;
-    }
-
-    .links a:hover {
-        color: white;
-        text-shadow: 0 0 5px rgba(255,255,255,0.5);
-    }
-
-    /* --- Keyframes para a animação do fundo --- */
     @keyframes floatLiquid {
-        0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-        50% { transform: translate(50px, 80px) rotate(180deg) scale(1.1); }
-        100% { transform: translate(-30px, -50px) rotate(360deg) scale(0.9); }
+        0% { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(30px, 40px) rotate(10deg); }
     }
-
 </style>
 </head>
 <body>
@@ -213,37 +170,83 @@
         <div class="blob blob-2"></div>
     </div>
 
-    <div class="login-glass-card">
+    <div class="login-glass-card" id="glassCard">
         <h2 class="title">Bem-vindo</h2>
 
         <form style="width: 100%;">
             <div class="input-group">
-                <input type="email" class="glass-input" placeholder="Email ou Usuário" required>
+                <input type="text" class="glass-input" placeholder="Usuário" id="userInput">
             </div>
 
             <div class="input-group">
-                <input type="password" class="glass-input" placeholder="Senha" required>
+                <input type="password" class="glass-input" placeholder="Senha" id="passInput">
             </div>
 
-            <button type="button" class="glass-button">
-                Entrar
-            </button>
+            <button type="button" class="glass-button">Entrar</button>
 
             <div class="links">
-                <a href="#">Esqueceu a senha?</a>
-                <a href="#">Criar conta</a>
+                <a href="#">Recuperar</a>
+                <a href="#">Cadastrar</a>
             </div>
         </form>
     </div>
 
     <script>
-        // Script opcional apenas para adicionar um efeito extra de "ripple" no clique do botão
-        // As animações principais já estão no CSS acima.
-        const button = document.querySelector('.glass-button');
-        button.addEventListener('click', function(e) {
-            // Apenas um console log para mostrar que funciona, 
-            // a animação visual de "apertar" já está no CSS :active
-            console.log("Botão clicado com efeito líquido!");
+        const card = document.getElementById('glassCard');
+        const inputs = document.querySelectorAll('.glass-input');
+
+        // Variáveis para guardar o estado
+        let mouseX = 0, mouseY = 0;
+        let pulseScale = 1;
+        let typingTimer;
+
+        // 1. Lógica do Mouse (Efeito Gota/Esticar)
+        document.addEventListener('mousemove', (e) => {
+            // Pega o centro da tela
+            const halfWidth = window.innerWidth / 2;
+            const halfHeight = window.innerHeight / 2;
+
+            // Calcula a distância do mouse em relação ao centro
+            // Dividimos por 35 para o movimento ser sutil (quanto maior o número, menos mexe)
+            mouseX = (e.clientX - halfWidth) / 35;
+            mouseY = (e.clientY - halfHeight) / 35;
+
+            updateTransform();
+        });
+
+        // 2. Lógica do Pulso ao Digitar
+        inputs.forEach(input => {
+            input.addEventListener('keydown', () => {
+                // Aumenta a escala levemente (pulso)
+                pulseScale = 1.015; // 1.5% maior
+                updateTransform();
+
+                // Reseta o pulso rapidamente
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(() => {
+                    pulseScale = 1;
+                    updateTransform();
+                }, 100); // Duração do pulso em ms
+            });
+        });
+
+        // 3. Função que aplica as transformações combinadas
+        function updateTransform() {
+            // rotateX inverte o Y para dar sensação de "olhar para o mouse"
+            // translate movimenta um pouco o card na direção do mouse (efeito imã)
+            card.style.transform = `
+                rotateY(${mouseX}deg) 
+                rotateX(${-mouseY}deg) 
+                translate(${mouseX * 1.5}px, ${mouseY * 1.5}px) 
+                scale(${pulseScale})
+            `;
+        }
+
+        // Resetar a posição quando o mouse sai da janela (opcional, mas elegante)
+        document.addEventListener('mouseleave', () => {
+            mouseX = 0;
+            mouseY = 0;
+            updateTransform();
         });
     </script>
 
