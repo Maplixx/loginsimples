@@ -3,16 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login Liquid Glass Interativo</title>
+<title>Login Liquid Glass Premium</title>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Inter', -apple-system, sans-serif;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
     body {
         height: 100vh;
@@ -21,232 +16,257 @@
         align-items: center;
         background-color: #0f172a;
         overflow: hidden;
-        /* Perspectiva é essencial para o efeito 3D de esticar */
-        perspective: 1000px; 
+        perspective: 1000px; /* Essencial para o 3D */
+    }
+
+    /* --- 1. Textura de Ruído (Noise) no fundo global --- */
+    .noise-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 999;
+        opacity: 0.05; /* Bem sutil */
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
     }
 
     /* --- Fundo (Blobs) --- */
     .background-blobs {
         position: absolute;
-        width: 100%;
-        height: 100%;
+        width: 100%; height: 100%;
         z-index: 1;
         pointer-events: none;
+        transition: transform 0.1s ease-out; /* Para o Parallax */
     }
 
     .blob {
         position: absolute;
-        filter: blur(60px);
-        opacity: 0.7;
+        filter: blur(70px);
+        opacity: 0.6;
         animation: floatLiquid 20s infinite ease-in-out alternate;
     }
 
     .blob-1 {
-        width: 500px;
-        height: 500px;
+        width: 600px; height: 600px;
         background: linear-gradient(135deg, #0061ff, #60efff);
-        top: -150px;
-        left: -150px;
+        top: -200px; left: -200px;
         border-radius: 40% 60% 70% 30%;
     }
 
     .blob-2 {
-        width: 400px;
-        height: 400px;
-        background: linear-gradient(135deg, #360033, #0b8793);
-        bottom: -100px;
-        right: -100px;
+        width: 500px; height: 500px;
+        background: linear-gradient(135deg, #7f00ff, #e100ff);
+        bottom: -150px; right: -150px;
         border-radius: 60% 40% 30% 70%;
         animation-duration: 25s;
         animation-direction: alternate-reverse;
     }
 
-    /* --- O Cartão de Vidro --- */
+    /* --- O Cartão --- */
     .login-glass-card {
         position: relative;
         z-index: 10;
-        width: 90%;
-        max-width: 400px;
+        width: 90%; max-width: 400px;
         padding: 40px 30px;
         
-        background: rgba(255, 255, 255, 0.03);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: rgba(255, 255, 255, 0.01); /* Quase transparente */
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
         border-radius: 30px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-        border-left: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        display: flex; flex-direction: column; align-items: center;
         color: rgba(255, 255, 255, 0.9);
+        
+        transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transform-style: preserve-3d;
+        
+        /* Animação de Entrada */
+        animation: fadeUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        opacity: 0;
+        transform: translateY(50px);
+    }
 
-        /* A transição suave é o segredo para parecer líquido e não robótico */
-        transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s ease;
-        transform-style: preserve-3d; /* Garante que o 3D funcione bem */
+    /* --- 2. Reflexo Dinâmico (Glare) --- */
+    .glass-glare {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        border-radius: 30px;
+        background: radial-gradient(
+            circle at 50% 50%, 
+            rgba(255, 255, 255, 0.15) 0%, 
+            transparent 60%
+        );
+        pointer-events: none;
+        z-index: 11;
+        opacity: 0.6;
+        transition: opacity 0.3s;
+        mix-blend-mode: overlay; /* Mistura a luz de forma realista */
     }
 
     .title {
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin-bottom: 30px;
-        background: linear-gradient(to right, #ffffff, #a2c2ff);
+        font-size: 2rem; font-weight: 700;
+        margin-bottom: 35px;
+        background: linear-gradient(to bottom, #ffffff, #b3cbf9);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        pointer-events: none; /* Evita bugs de mouse */
+        letter-spacing: -0.5px;
+        text-align: center;
+        pointer-events: none;
     }
 
-    /* --- Inputs --- */
-    .input-group {
-        width: 100%;
-        margin-bottom: 20px;
-    }
+    .input-group { width: 100%; margin-bottom: 20px; position: relative; z-index: 12; }
 
     .glass-input {
-        width: 100%;
-        padding: 15px 20px;
-        border: none;
-        border-radius: 20px;
-        background: rgba(0, 0, 0, 0.2);
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.2), 0 1px 1px rgba(255,255,255,0.1);
-        color: white;
-        font-size: 1rem;
-        outline: none;
+        width: 100%; padding: 16px 20px;
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 18px;
+        background: rgba(0, 0, 0, 0.25);
+        color: white; font-size: 1rem; outline: none;
         transition: all 0.3s ease;
+        backdrop-filter: blur(5px); /* Blur dentro do input também */
     }
+
+    .glass-input::placeholder { color: rgba(255, 255, 255, 0.4); }
 
     .glass-input:focus {
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.1), 0 0 15px rgba(96, 239, 255, 0.3);
-        transform: scale(1.02); /* Leve zoom no input focado */
+        background: rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 0 20px rgba(0, 97, 255, 0.2);
+        transform: scale(1.02);
     }
 
-    /* --- Botão --- */
     .glass-button {
-        width: 100%;
-        padding: 15px;
-        margin-top: 10px;
-        border: none;
-        border-radius: 20px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: white;
-        cursor: pointer;
-        background: linear-gradient(90deg, #0061ff, #00c6ff);
-        box-shadow: 0 4px 15px rgba(0, 97, 255, 0.4);
-        transition: transform 0.2s, box-shadow 0.2s;
+        width: 100%; padding: 16px; margin-top: 15px;
+        border: none; border-radius: 18px;
+        font-size: 1.1rem; font-weight: 600; color: white; cursor: pointer;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+        transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+        z-index: 12; position: relative; overflow: hidden;
     }
+
+    /* Brilho interno no botão */
+    .glass-button::before {
+        content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: 0.5s;
+    }
+    .glass-button:hover::before { left: 100%; }
 
     .glass-button:hover {
-        box-shadow: 0 8px 25px rgba(0, 97, 255, 0.6);
+        box-shadow: 0 8px 30px rgba(37, 99, 235, 0.5);
+        transform: translateY(-2px);
     }
-
-    .glass-button:active {
-        transform: scale(0.95);
-    }
+    .glass-button:active { transform: scale(0.96); filter: brightness(0.9); }
 
     .links {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        margin-top: 20px;
-        font-size: 0.9rem;
+        width: 100%; display: flex; justify-content: space-between;
+        margin-top: 25px; font-size: 0.9rem; z-index: 12;
     }
-    .links a { color: rgba(255, 255, 255, 0.6); text-decoration: none; transition: 0.3s; }
+    .links a { color: rgba(255, 255, 255, 0.5); text-decoration: none; transition: 0.3s; }
     .links a:hover { color: white; }
 
     @keyframes floatLiquid {
         0% { transform: translate(0, 0) rotate(0deg); }
-        100% { transform: translate(30px, 40px) rotate(10deg); }
+        100% { transform: translate(40px, 50px) rotate(15deg); }
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(50px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
     }
 </style>
 </head>
 <body>
 
-    <div class="background-blobs">
+    <div class="noise-overlay"></div>
+
+    <div class="background-blobs" id="blobs">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
     </div>
 
     <div class="login-glass-card" id="glassCard">
-        <h2 class="title">Bem-vindo</h2>
+        <div class="glass-glare" id="glare"></div>
+
+        <h2 class="title">Acesso</h2>
 
         <form style="width: 100%;">
             <div class="input-group">
                 <input type="text" class="glass-input" placeholder="Usuário" id="userInput">
             </div>
-
             <div class="input-group">
                 <input type="password" class="glass-input" placeholder="Senha" id="passInput">
             </div>
-
             <button type="button" class="glass-button">Entrar</button>
-
             <div class="links">
                 <a href="#">Recuperar</a>
-                <a href="#">Cadastrar</a>
+                <a href="#">Criar conta</a>
             </div>
         </form>
     </div>
 
     <script>
         const card = document.getElementById('glassCard');
+        const glare = document.getElementById('glare');
+        const blobs = document.getElementById('blobs');
         const inputs = document.querySelectorAll('.glass-input');
 
-        // Variáveis para guardar o estado
         let mouseX = 0, mouseY = 0;
         let pulseScale = 1;
         let typingTimer;
 
-        // 1. Lógica do Mouse (Efeito Gota/Esticar)
         document.addEventListener('mousemove', (e) => {
-            // Pega o centro da tela
             const halfWidth = window.innerWidth / 2;
             const halfHeight = window.innerHeight / 2;
 
-            // Calcula a distância do mouse em relação ao centro
-            // Dividimos por 35 para o movimento ser sutil (quanto maior o número, menos mexe)
+            // Mouse X e Y normalizados (-1 a 1)
+            const xNorm = (e.clientX - halfWidth) / halfWidth;
+            const yNorm = (e.clientY - halfHeight) / halfHeight;
+
+            // 1. Movimento do Cartão (Rotação Suave)
             mouseX = (e.clientX - halfWidth) / 35;
             mouseY = (e.clientY - halfHeight) / 35;
 
-            updateTransform();
+            // 2. Parallax dos Blobs (Movem-se na direção oposta e mais devagar)
+            blobs.style.transform = `translate(${-xNorm * 30}px, ${-yNorm * 30}px)`;
+
+            // 3. Movimento do Reflexo (Glare)
+            // O reflexo se move drasticamente para simular luz passando pelo vidro
+            glare.style.backgroundPosition = `${xNorm * 150}% ${yNorm * 150}%`;
+            // Opcional: mover o gradiente via transform para mais performance
+            glare.style.transform = `translate(${xNorm * 40}px, ${yNorm * 40}px)`;
+            
+            updateCardTransform();
         });
 
-        // 2. Lógica do Pulso ao Digitar
+        // Efeito de Pulso ao Digitar
         inputs.forEach(input => {
             input.addEventListener('keydown', () => {
-                // Aumenta a escala levemente (pulso)
-                pulseScale = 1.015; // 1.5% maior
-                updateTransform();
-
-                // Reseta o pulso rapidamente
+                pulseScale = 1.015; 
+                updateCardTransform();
                 clearTimeout(typingTimer);
                 typingTimer = setTimeout(() => {
                     pulseScale = 1;
-                    updateTransform();
-                }, 100); // Duração do pulso em ms
+                    updateCardTransform();
+                }, 100);
             });
         });
 
-        // 3. Função que aplica as transformações combinadas
-        function updateTransform() {
-            // rotateX inverte o Y para dar sensação de "olhar para o mouse"
-            // translate movimenta um pouco o card na direção do mouse (efeito imã)
+        function updateCardTransform() {
             card.style.transform = `
                 rotateY(${mouseX}deg) 
                 rotateX(${-mouseY}deg) 
-                translate(${mouseX * 1.5}px, ${mouseY * 1.5}px) 
+                translate(${mouseX * 1.2}px, ${mouseY * 1.2}px) 
                 scale(${pulseScale})
             `;
         }
 
-        // Resetar a posição quando o mouse sai da janela (opcional, mas elegante)
         document.addEventListener('mouseleave', () => {
-            mouseX = 0;
-            mouseY = 0;
-            updateTransform();
+            mouseX = 0; mouseY = 0;
+            card.style.transform = `rotateY(0) rotateX(0) translate(0,0) scale(1)`;
+            blobs.style.transform = `translate(0,0)`;
         });
     </script>
 
